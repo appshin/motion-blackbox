@@ -6,475 +6,129 @@
 <title>Motion Blackbox</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --bg: #0a0a0f;
-    --panel: rgba(0, 255, 65, 0.04);
-    --border: rgba(0, 255, 65, 0.15);
-    --green: #00ff41;
-    --green-dim: rgba(0, 255, 65, 0.5);
-    --green-glow: rgba(0, 255, 65, 0.3);
-    --red: #ff2244;
-    --red-glow: rgba(255, 34, 68, 0.4);
-    --amber: #ffaa00;
-    --text: #c0ffc8;
-    --text-dim: rgba(0, 255, 65, 0.35);
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-display: 'Orbitron', sans-serif;
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#f0f2f5;--panel:#fff;--border:#d0d5dd;
+    --primary:#1a73e8;--primary-light:rgba(26,115,232,.08);--primary-glow:rgba(26,115,232,.25);
+    --red:#d93025;--red-light:rgba(217,48,37,.08);--red-glow:rgba(217,48,37,.3);
+    --amber:#e8710a;--amber-light:rgba(232,113,10,.08);
+    --brake:#7b1fa2;--brake-light:rgba(123,31,162,.08);--brake-glow:rgba(123,31,162,.35);
+    --text:#1a1a2e;--text-sec:#5f6368;--text-dim:#9aa0a6;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+    --font-mono:'Share Tech Mono',monospace;--font-display:'Orbitron',sans-serif;
   }
+  body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100vh;overflow-x:hidden}
+  .container{max-width:480px;margin:0 auto;padding:12px;min-height:100vh}
 
-  body {
-    background: var(--bg);
-    color: var(--green);
-    font-family: var(--font-mono);
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-  }
+  .header{text-align:center;padding:18px 0 14px;margin-bottom:12px}
+  .header h1{font-family:var(--font-display);font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--text);margin-bottom:4px}
+  .header .subtitle{font-size:.65rem;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase}
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,255,65,0.015) 2px,
-      rgba(0,255,65,0.015) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
+  /* Banners */
+  .banner{display:none;color:#fff;text-align:center;padding:14px;border-radius:10px;margin-bottom:10px;font-family:var(--font-display);font-size:.75rem;letter-spacing:2px}
+  .banner .banner-sub{font-family:var(--font-mono);font-size:.6rem;letter-spacing:1px;margin-top:4px;opacity:.9}
+  .banner.visible{display:block}
+  .impact-banner{background:var(--red);box-shadow:0 4px 12px var(--red-glow);animation:bp 1.5s ease-in-out infinite}
+  .brake-banner{background:var(--brake);box-shadow:0 4px 12px var(--brake-glow);animation:bp 1.2s ease-in-out infinite}
+  @keyframes bp{0%,100%{opacity:1}50%{opacity:.85}}
 
-  .container {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 12px;
-    min-height: 100vh;
-  }
+  .status-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-size:.75rem;box-shadow:var(--shadow);color:var(--text-sec)}
+  .status-indicator{display:flex;align-items:center;gap:8px;font-weight:bold}
+  .status-dot{width:10px;height:10px;border-radius:50%}
+  .status-dot.active{background:var(--primary);box-shadow:0 0 6px var(--primary-glow);animation:pd 2s ease-in-out infinite}
+  .status-dot.idle{background:#bbb;animation:none}
+  .status-dot.stopped{background:var(--red);animation:none}
+  .status-dot.brake{background:var(--brake);box-shadow:0 0 6px var(--brake-glow);animation:pd .8s ease-in-out infinite}
+  @keyframes pd{0%,100%{opacity:1}50%{opacity:.4}}
 
-  /* Header */
-  .header {
-    text-align: center;
-    padding: 16px 0 12px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 12px;
-  }
+  /* Y value - big display */
+  .y-display{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:10px;box-shadow:var(--shadow);transition:border-color .3s,background .3s}
+  .y-display.braking{border-color:var(--brake);background:var(--brake-light)}
+  .y-display .label{font-family:var(--font-display);font-size:.7rem;color:var(--primary);letter-spacing:3px;margin-bottom:6px}
+  .y-display.braking .label{color:var(--brake)}
+  .y-display .value{font-size:2.8rem;font-weight:bold;color:var(--text);line-height:1}
+  .y-display .unit{font-size:.65rem;color:var(--text-dim);margin-top:4px}
+  .y-display .brake-tag{display:none;margin-top:8px;font-family:var(--font-display);font-size:.7rem;color:var(--brake);letter-spacing:2px;font-weight:700}
+  .y-display.braking .brake-tag{display:block;animation:blink .6s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-  .header h1 {
-    font-family: var(--font-display);
-    font-size: 1.3rem;
-    font-weight: 900;
-    letter-spacing: 4px;
-    text-shadow: 0 0 20px var(--green-glow), 0 0 40px rgba(0,255,65,0.15);
-    margin-bottom: 4px;
-  }
+  /* Graphs */
+  .graph-section{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .graph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.65rem;color:var(--text-sec);letter-spacing:1px;text-transform:uppercase;font-weight:bold}
+  canvas#graphCanvas{width:100%;height:150px;display:block;border-radius:6px;background:#fafbfc;border:1px solid #e8eaed}
 
-  .header .subtitle {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
+  .frozen-graph-section{display:none;background:var(--panel);border:2px solid var(--red);border-radius:10px;padding:10px;margin-bottom:10px;box-shadow:0 4px 12px var(--red-glow)}
+  .frozen-graph-section.visible{display:block}
+  .frozen-graph-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.65rem;color:var(--red);letter-spacing:1px;text-transform:uppercase;font-weight:bold}
+  canvas#frozenCanvas{width:100%;height:200px;display:block;border-radius:6px;background:#fffafa;border:1px solid rgba(217,48,37,.15)}
 
-  /* Status Bar */
-  .status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 0.72rem;
-  }
+  /* Impact meter */
+  .impact-section{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .impact-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .impact-header .label{font-size:.65rem;color:var(--text-sec);letter-spacing:2px;text-transform:uppercase;font-weight:bold}
+  .impact-value{font-family:var(--font-display);font-size:1.2rem;color:var(--text)}
+  .impact-bar-bg{height:8px;background:#e8eaed;border-radius:4px;overflow:hidden;position:relative}
+  .impact-bar-fill{height:100%;background:var(--primary);border-radius:4px;transition:width .1s,background .2s}
+  .impact-bar-fill.warning{background:var(--amber)}
+  .impact-bar-fill.danger{background:var(--red)}
+  .threshold-line{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red);border-radius:1px}
 
-  .status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .threshold-control{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .threshold-control .label{font-size:.6rem;color:var(--text-sec);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;font-weight:bold}
+  .threshold-control input[type="range"]{width:100%;-webkit-appearance:none;height:6px;background:#e8eaed;border-radius:3px;outline:none}
+  .threshold-control input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--primary);box-shadow:0 2px 6px var(--primary-glow);cursor:pointer}
 
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
+  .buffer-section{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+  .buffer-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:var(--shadow)}
+  .buffer-box .label{font-size:.6rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;font-weight:bold}
+  .buffer-box .val{font-size:1.1rem;color:var(--text);font-weight:bold}
+  .buffer-box .detail{font-size:.55rem;color:var(--text-dim);margin-top:2px}
 
-  .status-dot.recording { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse-dot-red 0.8s ease-in-out infinite; }
-  .status-dot.idle { background: #555; box-shadow: none; animation: none; }
+  .controls{display:flex;gap:8px;margin-bottom:10px}
+  .btn{flex:1;padding:14px;border:none;background:var(--primary);color:#fff;font-family:var(--font-display);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);font-weight:700}
+  .btn:active{transform:scale(.97)}
+  .btn.stop-btn{background:var(--red)}
+  .btn.secondary{background:var(--panel);color:var(--text-sec);border:1px solid var(--border)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
 
-  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-  @keyframes pulse-dot-red { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .events-section{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .events-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .events-header .label{font-size:.65rem;color:var(--text-sec);letter-spacing:2px;text-transform:uppercase;font-weight:bold}
+  .event-count{font-family:var(--font-display);font-size:.8rem;color:var(--red);background:var(--red-light);padding:2px 10px;border-radius:12px;font-weight:700}
+  .event-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--red-light);border:1px solid rgba(217,48,37,.15);border-radius:8px;margin-bottom:6px;font-size:.7rem}
+  .event-item .time{color:var(--red);font-weight:bold}
+  .event-item .mag{color:var(--amber);font-weight:bold}
+  .event-item .download-btn{background:var(--red);border:none;color:#fff;padding:4px 12px;border-radius:6px;font-family:var(--font-mono);font-size:.6rem;cursor:pointer;letter-spacing:1px;font-weight:bold}
+  .no-events{font-size:.65rem;color:var(--text-dim);text-align:center;padding:16px}
 
-  /* Coordinate Display */
-  .coord-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
+  .impact-flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(217,48,37,.25),transparent 70%);pointer-events:none;opacity:0;z-index:9998}
+  .impact-flash.active{opacity:1;animation:fo .8s ease-out forwards}
+  @keyframes fo{0%{opacity:1}100%{opacity:0}}
 
-  .coord-box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 8px;
-    text-align: center;
-  }
-
-  .coord-box .label {
-    font-family: var(--font-display);
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-  }
-
-  .coord-box .value {
-    font-size: 1.4rem;
-    font-weight: bold;
-    text-shadow: 0 0 10px var(--green-glow);
-    transition: color 0.15s;
-  }
-
-  .coord-box .unit {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    margin-top: 2px;
-  }
-
-  /* Canvas area */
-  .graph-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px;
-    margin-bottom: 10px;
-  }
-
-  .graph-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  canvas {
-    width: 100%;
-    height: 130px;
-    display: block;
-    border-radius: 2px;
-  }
-
-  /* Impact Meter */
-  .impact-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-  }
-
-  .impact-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .impact-header .label {
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .impact-value {
-    font-family: var(--font-display);
-    font-size: 1.1rem;
-    text-shadow: 0 0 10px var(--green-glow);
-  }
-
-  .impact-bar-bg {
-    height: 6px;
-    background: rgba(0,255,65,0.08);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .impact-bar-fill {
-    height: 100%;
-    background: var(--green);
-    border-radius: 3px;
-    transition: width 0.1s, background 0.2s;
-    box-shadow: 0 0 8px var(--green-glow);
-  }
-
-  .impact-bar-fill.warning { background: var(--amber); box-shadow: 0 0 8px rgba(255,170,0,0.4); }
-  .impact-bar-fill.danger { background: var(--red); box-shadow: 0 0 8px var(--red-glow); }
-
-  .threshold-line {
-    position: absolute;
-    top: -2px;
-    bottom: -2px;
-    width: 2px;
-    background: var(--red);
-    box-shadow: 0 0 4px var(--red);
-  }
-
-  /* Buffer info */
-  .buffer-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .buffer-box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px;
-  }
-
-  .buffer-box .label {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .buffer-box .val {
-    font-size: 1rem;
-    text-shadow: 0 0 8px var(--green-glow);
-  }
-
-  .buffer-box .detail {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    margin-top: 2px;
-  }
-
-  /* Saved events */
-  .events-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-  }
-
-  .events-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .events-header .label {
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .event-count {
-    font-family: var(--font-display);
-    font-size: 0.8rem;
-    color: var(--red);
-    text-shadow: 0 0 8px var(--red-glow);
-  }
-
-  .event-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 8px;
-    background: rgba(255,34,68,0.05);
-    border: 1px solid rgba(255,34,68,0.15);
-    border-radius: 3px;
-    margin-bottom: 4px;
-    font-size: 0.65rem;
-  }
-
-  .event-item .time { color: var(--red); }
-  .event-item .mag { color: var(--amber); }
-
-  .event-item .download-btn {
-    background: transparent;
-    border: 1px solid rgba(255,34,68,0.3);
-    color: var(--red);
-    padding: 2px 8px;
-    border-radius: 2px;
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    cursor: pointer;
-    letter-spacing: 1px;
-  }
-
-  .event-item .download-btn:active {
-    background: rgba(255,34,68,0.15);
-  }
-
-  .no-events {
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    text-align: center;
-    padding: 12px;
-  }
-
-  /* Controls */
-  .controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .btn {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--green);
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn:active {
-    background: rgba(0,255,65,0.12);
-    box-shadow: 0 0 15px var(--green-glow);
-  }
-
-  .btn.danger {
-    border-color: rgba(255,34,68,0.3);
-    color: var(--red);
-  }
-
-  .btn.danger:active {
-    background: rgba(255,34,68,0.12);
-  }
-
-  .btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  /* Threshold control */
-  .threshold-control {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-  }
-
-  .threshold-control .label {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .threshold-control input[type="range"] {
-    width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: rgba(0,255,65,0.15);
-    border-radius: 2px;
-    outline: none;
-  }
-
-  .threshold-control input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green-glow);
-    cursor: pointer;
-  }
-
-  /* Impact flash */
-  .impact-flash {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle, rgba(255,34,68,0.3), transparent 70%);
-    pointer-events: none;
-    opacity: 0;
-    z-index: 9998;
-    transition: opacity 0.1s;
-  }
-
-  .impact-flash.active {
-    opacity: 1;
-    animation: flash-out 0.6s ease-out forwards;
-  }
-
-  @keyframes flash-out {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-
-  /* Log */
-  .log-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 20px;
-    max-height: 100px;
-    overflow-y: auto;
-  }
-
-  .log-section .label {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .log-line {
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    line-height: 1.6;
-  }
-
-  .log-line.impact { color: var(--red); }
-  .log-line.save { color: var(--amber); }
+  .log-section{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:20px;max-height:100px;overflow-y:auto;box-shadow:var(--shadow)}
+  .log-section .label{font-size:.6rem;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;font-weight:bold}
+  .log-line{font-size:.6rem;color:var(--text-sec);line-height:1.7}
+  .log-line.impact{color:var(--red);font-weight:bold}
+  .log-line.save{color:var(--amber);font-weight:bold}
+  .log-line.brake{color:var(--brake);font-weight:bold}
 </style>
 </head>
 <body>
-
 <div class="impact-flash" id="impactFlash"></div>
-
 <div class="container">
   <div class="header">
     <h1>MOTION BLACKBOX</h1>
-    <div class="subtitle">Accelerometer Data Recorder</div>
+    <div class="subtitle">Y-Axis Accelerometer Recorder</div>
+  </div>
+
+  <div class="banner impact-banner" id="impactBanner">
+    ⚠ 충격 감지 — 기록 자동 정지
+    <div class="banner-sub" id="impactBannerSub"></div>
+  </div>
+
+  <div class="banner brake-banner" id="brakeBanner">
+    🛑 브레이크 작동 감지
+    <div class="banner-sub" id="brakeBannerSub"></div>
   </div>
 
   <div class="status-bar">
@@ -485,35 +139,35 @@
     <span id="clock">--:--:--</span>
   </div>
 
-  <div class="coord-panel">
-    <div class="coord-box">
-      <div class="label">X축</div>
-      <div class="value" id="xVal">0.00</div>
-      <div class="unit">m/s²</div>
-    </div>
-    <div class="coord-box">
-      <div class="label">Y축</div>
-      <div class="value" id="yVal">0.00</div>
-      <div class="unit">m/s²</div>
-    </div>
-    <div class="coord-box">
-      <div class="label">Z축</div>
-      <div class="value" id="zVal">0.00</div>
-      <div class="unit">m/s²</div>
-    </div>
+  <!-- Y value big display -->
+  <div class="y-display" id="yDisplay">
+    <div class="label">Y축 가속도</div>
+    <div class="value" id="yVal">0.00</div>
+    <div class="unit">m/s²</div>
+    <div class="brake-tag" id="brakeTag">🛑 브레이크 작동</div>
   </div>
 
-  <div class="graph-section">
-    <div class="graph-header">
-      <span>실시간 가속도 그래프</span>
-      <span id="graphTime">0s</span>
+  <!-- Frozen graph (after impact) -->
+  <div class="frozen-graph-section" id="frozenGraphSection">
+    <div class="frozen-graph-header">
+      <span>📊 충격 전 1분 그래프</span>
+      <span id="frozenGraphTime">60초</span>
     </div>
-    <canvas id="graphCanvas" height="130"></canvas>
+    <canvas id="frozenCanvas" height="200"></canvas>
+  </div>
+
+  <!-- Live graph -->
+  <div class="graph-section" id="liveGraphSection">
+    <div class="graph-header">
+      <span>실시간 Y축 그래프</span>
+      <span id="graphTime">10s</span>
+    </div>
+    <canvas id="graphCanvas" height="150"></canvas>
   </div>
 
   <div class="impact-section">
     <div class="impact-header">
-      <span class="label">충격 감지</span>
+      <span class="label">충격 강도</span>
       <span class="impact-value" id="impactVal">0.0 G</span>
     </div>
     <div class="impact-bar-bg">
@@ -523,29 +177,18 @@
   </div>
 
   <div class="threshold-control">
-    <div class="label">
-      <span>충격 감지 임계값</span>
-      <span id="threshDisplay">2.0 G</span>
-    </div>
+    <div class="label"><span>충격 감지 임계값</span><span id="threshDisplay">2.0 G</span></div>
     <input type="range" id="threshSlider" min="0.5" max="5" step="0.1" value="2.0">
   </div>
 
   <div class="buffer-section">
-    <div class="buffer-box">
-      <div class="label">버퍼 용량</div>
-      <div class="val" id="bufferCount">0</div>
-      <div class="detail" id="bufferTime">0초 / 180초</div>
-    </div>
-    <div class="buffer-box">
-      <div class="label">저장된 이벤트</div>
-      <div class="val" id="savedCount">0</div>
-      <div class="detail">충격 감지 기록</div>
-    </div>
+    <div class="buffer-box"><div class="label">버퍼 용량</div><div class="val" id="bufferCount">0</div><div class="detail" id="bufferTime">0초 / 180초</div></div>
+    <div class="buffer-box"><div class="label">저장 이벤트</div><div class="val" id="savedCount">0</div><div class="detail">충격 감지 기록</div></div>
   </div>
 
   <div class="controls">
     <button class="btn" id="startBtn" onclick="toggleRecording()">시작</button>
-    <button class="btn danger" id="clearBtn" onclick="clearEvents()" disabled>기록 삭제</button>
+    <button class="btn secondary" id="clearBtn" onclick="clearEvents()" disabled>기록 삭제</button>
   </div>
 
   <div class="events-section">
@@ -553,9 +196,7 @@
       <span class="label">충격 이벤트 기록</span>
       <span class="event-count" id="eventBadge">0</span>
     </div>
-    <div id="eventList">
-      <div class="no-events">충격 이벤트가 감지되면 여기에 표시됩니다</div>
-    </div>
+    <div id="eventList"><div class="no-events">충격 이벤트가 감지되면 여기에 표시됩니다</div></div>
   </div>
 
   <div class="log-section">
@@ -565,402 +206,313 @@
 </div>
 
 <script>
-  // State
-  let isRecording = false;
-  let dataBuffer = [];          // rolling 3-minute buffer
-  let savedEvents = [];         // saved impact events
-  let impactThreshold = 2.0;    // in G
-  const BUFFER_DURATION = 180;  // 3 minutes in seconds
-  const SAMPLE_RATE = 20;       // samples per second (50ms interval)
-  const MAX_BUFFER = BUFFER_DURATION * SAMPLE_RATE; // 3600 samples
-  let lastImpactTime = 0;
-  const IMPACT_COOLDOWN = 3000; // 3 sec cooldown between impacts
+let isRecording=false,dataBuffer=[],savedEvents=[],impactThreshold=2.0;
+const BUFFER_DURATION=180,SAMPLE_RATE=20,MAX_BUFFER=BUFFER_DURATION*SAMPLE_RATE;
+const FROZEN_SAMPLES=60*SAMPLE_RATE;
+let lastImpactTime=0;const IMPACT_COOLDOWN=3000;
 
-  // Graph data
-  const GRAPH_POINTS = 200;
-  let graphX = new Array(GRAPH_POINTS).fill(0);
-  let graphY = new Array(GRAPH_POINTS).fill(0);
-  let graphZ = new Array(GRAPH_POINTS).fill(0);
+const GRAPH_POINTS=200;
+let graphY=new Array(GRAPH_POINTS).fill(0);
+let curY=0,curX=0,curZ=0;
+let animFrameId=null,sampleInterval=null;
 
-  // Current values
-  let curX = 0, curY = 0, curZ = 0;
+// Brake detection
+let prevY=0,brakeActive=false;
+const BRAKE_THRESHOLD=-3; // Y decreasing below this = braking
+let brakeTimeout=null;
 
-  // DOM refs
-  const xValEl = document.getElementById('xVal');
-  const yValEl = document.getElementById('yVal');
-  const zValEl = document.getElementById('zVal');
-  const statusDot = document.getElementById('statusDot');
-  const statusText = document.getElementById('statusText');
-  const clockEl = document.getElementById('clock');
-  const impactValEl = document.getElementById('impactVal');
-  const impactBar = document.getElementById('impactBar');
-  const threshLine = document.getElementById('threshLine');
-  const bufferCountEl = document.getElementById('bufferCount');
-  const bufferTimeEl = document.getElementById('bufferTime');
-  const savedCountEl = document.getElementById('savedCount');
-  const eventListEl = document.getElementById('eventList');
-  const eventBadgeEl = document.getElementById('eventBadge');
-  const startBtn = document.getElementById('startBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const threshSlider = document.getElementById('threshSlider');
-  const threshDisplay = document.getElementById('threshDisplay');
-  const canvas = document.getElementById('graphCanvas');
-  const ctx = canvas.getContext('2d');
-  const impactFlash = document.getElementById('impactFlash');
-  const logArea = document.getElementById('logArea');
-  const graphTimeEl = document.getElementById('graphTime');
+const $=id=>document.getElementById(id);
 
-  // Clock
-  function updateClock() {
-    const now = new Date();
-    clockEl.textContent = now.toTimeString().slice(0, 8);
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
+function updateClock(){$('clock').textContent=new Date().toTimeString().slice(0,8)}
+setInterval(updateClock,1000);updateClock();
 
-  // Log
-  function addLog(msg, type = '') {
-    const time = new Date().toTimeString().slice(0, 8);
-    const line = document.createElement('div');
-    line.className = 'log-line' + (type ? ' ' + type : '');
-    line.textContent = `[${time}] ${msg}`;
-    logArea.prepend(line);
-    if (logArea.children.length > 30) logArea.removeChild(logArea.lastChild);
-  }
+function addLog(msg,type=''){
+  const t=new Date().toTimeString().slice(0,8);
+  const l=document.createElement('div');
+  l.className='log-line'+(type?' '+type:'');
+  l.textContent=`[${t}] ${msg}`;
+  $('logArea').prepend(l);
+  if($('logArea').children.length>30)$('logArea').removeChild($('logArea').lastChild);
+}
 
-  // Threshold slider
-  threshSlider.addEventListener('input', (e) => {
-    impactThreshold = parseFloat(e.target.value);
-    threshDisplay.textContent = impactThreshold.toFixed(1) + ' G';
-    threshLine.style.left = (impactThreshold / 5 * 100) + '%';
-  });
-  threshLine.style.left = (impactThreshold / 5 * 100) + '%';
+$('threshSlider').addEventListener('input',e=>{
+  impactThreshold=parseFloat(e.target.value);
+  $('threshDisplay').textContent=impactThreshold.toFixed(1)+' G';
+  $('threshLine').style.left=(impactThreshold/5*100)+'%';
+});
+$('threshLine').style.left=(impactThreshold/5*100)+'%';
 
-  // Motion handling
-  function handleMotion(event) {
-    if (!isRecording) return;
+function handleMotion(e){
+  if(!isRecording)return;
+  const a=e.accelerationIncludingGravity||e.acceleration;
+  if(!a)return;
+  curX=a.x||0;curY=a.y||0;curZ=a.z||0;
+}
 
-    const acc = event.accelerationIncludingGravity || event.acceleration;
-    if (!acc) return;
+function startSampling(){
+  sampleInterval=setInterval(()=>{
+    if(!isRecording)return;
+    const ts=Date.now();
+    const gF=Math.sqrt(curX*curX+curY*curY+curZ*curZ)/9.81;
 
-    curX = acc.x || 0;
-    curY = acc.y || 0;
-    curZ = acc.z || 0;
-  }
+    $('yVal').textContent=curY.toFixed(2);
+    graphY.push(curY);graphY.shift();
 
-  // Sampling loop
-  let sampleInterval = null;
+    dataBuffer.push({t:ts,y:+curY.toFixed(3),g:+gF.toFixed(3)});
+    while(dataBuffer.length>MAX_BUFFER)dataBuffer.shift();
 
-  function startSampling() {
-    sampleInterval = setInterval(() => {
-      if (!isRecording) return;
-
-      const timestamp = Date.now();
-      const gForce = Math.sqrt(curX*curX + curY*curY + curZ*curZ) / 9.81;
-
-      // Update display
-      xValEl.textContent = curX.toFixed(2);
-      yValEl.textContent = curY.toFixed(2);
-      zValEl.textContent = curZ.toFixed(2);
-
-      // Update graph arrays
-      graphX.push(curX); graphX.shift();
-      graphY.push(curY); graphY.shift();
-      graphZ.push(curZ); graphZ.shift();
-
-      // Add to buffer
-      dataBuffer.push({
-        t: timestamp,
-        x: parseFloat(curX.toFixed(3)),
-        y: parseFloat(curY.toFixed(3)),
-        z: parseFloat(curZ.toFixed(3)),
-        g: parseFloat(gForce.toFixed(3))
-      });
-
-      // Trim buffer to 3 minutes
-      while (dataBuffer.length > MAX_BUFFER) {
-        dataBuffer.shift();
+    // Brake detection: Y값이 급격히 감소할 때
+    const yDelta=curY-prevY;
+    if(curY<BRAKE_THRESHOLD || yDelta<-2){
+      if(!brakeActive){
+        brakeActive=true;
+        $('yDisplay').classList.add('braking');
+        $('brakeBanner').classList.add('visible');
+        $('brakeBannerSub').textContent=`Y = ${curY.toFixed(2)} m/s²`;
+        $('statusDot').className='status-dot brake';
+        addLog(`브레이크 작동 감지 — Y=${curY.toFixed(2)} m/s²`,'brake');
       }
+      $('brakeBannerSub').textContent=`Y = ${curY.toFixed(2)} m/s²`;
+      if(brakeTimeout)clearTimeout(brakeTimeout);
+      brakeTimeout=setTimeout(()=>{
+        brakeActive=false;
+        $('yDisplay').classList.remove('braking');
+        $('brakeBanner').classList.remove('visible');
+        if(isRecording){$('statusDot').className='status-dot active';}
+      },1500);
+    }
+    prevY=curY;
 
-      // Update impact display
-      const displayG = gForce.toFixed(1);
-      impactValEl.textContent = displayG + ' G';
-      const pct = Math.min(gForce / 5 * 100, 100);
-      impactBar.style.width = pct + '%';
+    // Impact display
+    $('impactVal').textContent=gF.toFixed(1)+' G';
+    const pct=Math.min(gF/5*100,100);
+    $('impactBar').style.width=pct+'%';
+    $('impactBar').className='impact-bar-fill'+(gF>impactThreshold?' danger':gF>impactThreshold*.6?' warning':'');
 
-      if (gForce > impactThreshold) {
-        impactBar.className = 'impact-bar-fill danger';
-      } else if (gForce > impactThreshold * 0.6) {
-        impactBar.className = 'impact-bar-fill warning';
-      } else {
-        impactBar.className = 'impact-bar-fill';
-      }
-
-      // Impact detection
-      // Subtract gravity (~1G at rest), check if residual exceeds threshold
-      const netG = Math.abs(gForce - 1.0);
-      if (netG > impactThreshold && (timestamp - lastImpactTime) > IMPACT_COOLDOWN) {
-        lastImpactTime = timestamp;
-        triggerImpact(netG, timestamp);
-      }
-
-      // Update buffer info
-      bufferCountEl.textContent = dataBuffer.length;
-      const bufSec = Math.floor(dataBuffer.length / SAMPLE_RATE);
-      bufferTimeEl.textContent = bufSec + '초 / ' + BUFFER_DURATION + '초';
-      graphTimeEl.textContent = Math.floor(GRAPH_POINTS / SAMPLE_RATE) + 's';
-
-    }, 1000 / SAMPLE_RATE);
-  }
-
-  // Impact triggered
-  function triggerImpact(gForce, timestamp) {
-    // Flash screen
-    impactFlash.classList.remove('active');
-    void impactFlash.offsetWidth;
-    impactFlash.classList.add('active');
-
-    // Vibrate if available
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-
-    // Save buffer snapshot
-    const snapshot = [...dataBuffer];
-    const eventTime = new Date(timestamp);
-    const eventData = {
-      id: Date.now(),
-      time: eventTime.toLocaleString('ko-KR'),
-      timeShort: eventTime.toTimeString().slice(0, 8),
-      magnitude: gForce.toFixed(2),
-      dataPoints: snapshot.length,
-      duration: Math.floor(snapshot.length / SAMPLE_RATE),
-      data: snapshot
-    };
-
-    savedEvents.unshift(eventData);
-    savedCountEl.textContent = savedEvents.length;
-    eventBadgeEl.textContent = savedEvents.length;
-    clearBtn.disabled = false;
-
-    addLog(`충격 감지! ${gForce.toFixed(2)}G — ${snapshot.length}개 데이터 저장됨`, 'impact');
-
-    // Change status briefly
-    statusDot.className = 'status-dot recording';
-    statusText.textContent = '충격 감지!';
-    setTimeout(() => {
-      if (isRecording) {
-        statusDot.className = 'status-dot';
-        statusText.textContent = '기록 중';
-      }
-    }, 2000);
-
-    renderEvents();
-  }
-
-  // Render events list
-  function renderEvents() {
-    if (savedEvents.length === 0) {
-      eventListEl.innerHTML = '<div class="no-events">충격 이벤트가 감지되면 여기에 표시됩니다</div>';
-      return;
+    // Impact detection
+    const netG=Math.abs(gF-1.0);
+    if(netG>impactThreshold&&(ts-lastImpactTime)>IMPACT_COOLDOWN){
+      lastImpactTime=ts;
+      triggerImpact(netG,ts);
     }
 
-    eventListEl.innerHTML = savedEvents.map((ev, i) => `
-      <div class="event-item">
-        <span class="time">${ev.timeShort}</span>
-        <span class="mag">${ev.magnitude}G</span>
-        <span>${ev.dataPoints}pts / ${ev.duration}s</span>
-        <button class="download-btn" onclick="downloadEvent(${i})">저장</button>
-      </div>
-    `).join('');
+    $('bufferCount').textContent=dataBuffer.length;
+    $('bufferTime').textContent=Math.floor(dataBuffer.length/SAMPLE_RATE)+'초 / '+BUFFER_DURATION+'초';
+    $('graphTime').textContent=Math.floor(GRAPH_POINTS/SAMPLE_RATE)+'s';
+  },1000/SAMPLE_RATE);
+}
+
+function triggerImpact(gForce,timestamp){
+  $('impactFlash').classList.remove('active');
+  void $('impactFlash').offsetWidth;
+  $('impactFlash').classList.add('active');
+  if(navigator.vibrate)navigator.vibrate([200,100,200]);
+
+  const snapshot=[...dataBuffer];
+  const evTime=new Date(timestamp);
+  const ev={id:Date.now(),time:evTime.toLocaleString('ko-KR'),
+    timeShort:evTime.toTimeString().slice(0,8),magnitude:gForce.toFixed(2),
+    dataPoints:snapshot.length,duration:Math.floor(snapshot.length/SAMPLE_RATE),data:snapshot};
+  savedEvents.unshift(ev);
+  $('savedCount').textContent=savedEvents.length;
+  $('eventBadge').textContent=savedEvents.length;
+  $('clearBtn').disabled=false;
+  addLog(`⚠ 충격! ${gForce.toFixed(2)}G — 자동 정지`,'impact');
+  addLog(`${snapshot.length}개 데이터 저장`,'save');
+
+  stopRecording();
+  $('brakeBanner').classList.remove('visible');
+  $('yDisplay').classList.remove('braking');
+  brakeActive=false;
+
+  $('impactBanner').classList.add('visible');
+  $('impactBannerSub').textContent=`${gForce.toFixed(2)}G | ${ev.timeShort} | ${snapshot.length}개 데이터`;
+  $('statusDot').className='status-dot stopped';
+  $('statusText').textContent='충격 — 정지됨';
+  $('startBtn').textContent='재시작';$('startBtn').classList.remove('stop-btn');
+
+  showFrozenGraph(snapshot);
+  renderEvents();
+}
+
+function showFrozenGraph(snapshot){
+  const last=snapshot.slice(-FROZEN_SAMPLES);
+  $('frozenGraphSection').classList.add('visible');
+
+  const c=$('frozenCanvas'),cx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=c.getBoundingClientRect();
+  c.width=rect.width*dpr;c.height=rect.height*dpr;
+  cx.scale(dpr,dpr);
+  const W=rect.width,H=rect.height;
+  cx.clearRect(0,0,W,H);
+
+  // Grid
+  cx.strokeStyle='#e8eaed';cx.lineWidth=.5;
+  for(let y=0;y<=H;y+=H/6){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+  for(let x=0;x<=W;x+=W/12){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+
+  // Time labels
+  cx.fillStyle='#5f6368';cx.font='10px Share Tech Mono';
+  const totalSec=last.length/SAMPLE_RATE;
+  for(let s=0;s<=totalSec;s+=10){cx.fillText(`-${Math.round(totalSec-s)}s`,(s/totalSec)*W+2,H-4)}
+
+  // Center
+  cx.strokeStyle='#d0d5dd';cx.lineWidth=1;
+  cx.beginPath();cx.moveTo(0,H/2);cx.lineTo(W,H/2);cx.stroke();
+
+  cx.fillStyle='#5f6368';cx.font='10px Share Tech Mono';
+  cx.fillText('+20',2,14);cx.fillText('0',2,H/2-4);cx.fillText('-20',2,H-16);
+
+  const mapV=v=>H/2-(v/20)*(H/2*.85);
+
+  // Shade brake zones (Y < BRAKE_THRESHOLD)
+  cx.fillStyle='rgba(123,31,162,0.06)';
+  const brakeY=mapV(BRAKE_THRESHOLD);
+  cx.fillRect(0,brakeY,W,H-brakeY);
+  cx.strokeStyle='rgba(123,31,162,0.3)';cx.lineWidth=1;cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(0,brakeY);cx.lineTo(W,brakeY);cx.stroke();
+  cx.setLineDash([]);
+  cx.fillStyle='#7b1fa2';cx.font='10px Share Tech Mono';
+  cx.fillText('브레이크 구간',W-90,brakeY+14);
+
+  // Y line
+  if(last.length>=2){
+    cx.strokeStyle='#1a73e8';cx.lineWidth=2.5;cx.beginPath();
+    for(let i=0;i<last.length;i++){
+      const px=(i/(last.length-1))*W,py=mapV(last[i].y);
+      i===0?cx.moveTo(px,py):cx.lineTo(px,py);
+    }
+    cx.stroke();
   }
 
-  // Download event as JSON
-  function downloadEvent(index) {
-    const ev = savedEvents[index];
-    const exportData = {
-      event_time: ev.time,
-      impact_magnitude_g: parseFloat(ev.magnitude),
-      buffer_duration_sec: ev.duration,
-      sample_rate_hz: SAMPLE_RATE,
-      data_points: ev.dataPoints,
-      samples: ev.data.map(d => ({
-        timestamp: d.t,
-        x: d.x,
-        y: d.y,
-        z: d.z,
-        total_g: d.g
-      }))
-    };
+  // Impact line
+  cx.strokeStyle='rgba(217,48,37,.7)';cx.lineWidth=2;cx.setLineDash([5,3]);
+  cx.beginPath();cx.moveTo(W-2,0);cx.lineTo(W-2,H);cx.stroke();cx.setLineDash([]);
+  cx.fillStyle='#d93025';cx.font='bold 11px Share Tech Mono';cx.fillText('충격!',W-42,14);
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `impact_${ev.id}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // Legend
+  cx.fillStyle='#1a73e8';cx.fillRect(W-110,28,10,10);
+  cx.fillStyle='#5f6368';cx.font='11px Share Tech Mono';cx.fillText('Y축',W-96,37);
 
-    addLog(`이벤트 ${ev.timeShort} 데이터 다운로드`, 'save');
+  $('frozenGraphTime').textContent=Math.floor(last.length/SAMPLE_RATE)+'초';
+}
+
+function renderEvents(){
+  if(!savedEvents.length){$('eventList').innerHTML='<div class="no-events">충격 이벤트가 감지되면 여기에 표시됩니다</div>';return}
+  $('eventList').innerHTML=savedEvents.map((ev,i)=>`
+    <div class="event-item">
+      <span class="time">${ev.timeShort}</span>
+      <span class="mag">${ev.magnitude}G</span>
+      <span>${ev.duration}초</span>
+      <button class="download-btn" onclick="downloadEvent(${i})">저장</button>
+    </div>`).join('');
+}
+
+function downloadEvent(i){
+  const ev=savedEvents[i];
+  const d={event_time:ev.time,impact_g:+ev.magnitude,duration_sec:ev.duration,
+    sample_rate:SAMPLE_RATE,points:ev.dataPoints,
+    samples:ev.data.map(s=>({t:s.t,y:s.y,g:s.g}))};
+  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b);const a=document.createElement('a');
+  a.href=u;a.download=`impact_${ev.id}.json`;a.click();URL.revokeObjectURL(u);
+  addLog(`이벤트 ${ev.timeShort} 다운로드`,'save');
+}
+
+function clearEvents(){
+  if(!confirm('모든 충격 기록을 삭제하시겠습니까?'))return;
+  savedEvents=[];$('savedCount').textContent='0';$('eventBadge').textContent='0';
+  $('clearBtn').disabled=true;renderEvents();addLog('기록 삭제됨');
+}
+
+function drawGraph(){
+  const c=$('graphCanvas'),cx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;const rect=c.getBoundingClientRect();
+  c.width=rect.width*dpr;c.height=rect.height*dpr;cx.scale(dpr,dpr);
+  const W=rect.width,H=rect.height;cx.clearRect(0,0,W,H);
+
+  cx.strokeStyle='#e8eaed';cx.lineWidth=.5;
+  for(let y=0;y<H;y+=H/6){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+  for(let x=0;x<W;x+=W/10){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+  cx.strokeStyle='#d0d5dd';cx.lineWidth=1;
+  cx.beginPath();cx.moveTo(0,H/2);cx.lineTo(W,H/2);cx.stroke();
+
+  const mapV=v=>H/2-(v/20)*(H/2);
+
+  // Brake zone shading
+  cx.fillStyle='rgba(123,31,162,0.04)';
+  const brakeY=mapV(BRAKE_THRESHOLD);
+  cx.fillRect(0,brakeY,W,H-brakeY);
+  cx.strokeStyle='rgba(123,31,162,0.2)';cx.lineWidth=1;cx.setLineDash([3,3]);
+  cx.beginPath();cx.moveTo(0,brakeY);cx.lineTo(W,brakeY);cx.stroke();cx.setLineDash([]);
+
+  // Y line
+  cx.strokeStyle='#1a73e8';cx.lineWidth=2;cx.beginPath();
+  for(let i=0;i<graphY.length;i++){
+    const px=(i/(graphY.length-1))*W,py=mapV(graphY[i]);
+    i===0?cx.moveTo(px,py):cx.lineTo(px,py);
   }
+  cx.stroke();
 
-  // Clear events
-  function clearEvents() {
-    if (confirm('모든 충격 기록을 삭제하시겠습니까?')) {
-      savedEvents = [];
-      savedCountEl.textContent = '0';
-      eventBadgeEl.textContent = '0';
-      clearBtn.disabled = true;
-      renderEvents();
-      addLog('모든 이벤트 기록이 삭제되었습니다');
+  // Label
+  cx.font='10px Share Tech Mono';
+  cx.fillStyle='#1a73e8';cx.fillRect(W-50,6,8,8);
+  cx.fillStyle='#5f6368';cx.fillText('Y',W-38,14);
+
+  animFrameId=requestAnimationFrame(drawGraph);
+}
+
+function stopRecording(){
+  isRecording=false;
+  window.removeEventListener('devicemotion',handleMotion);
+  if(sampleInterval){clearInterval(sampleInterval);sampleInterval=null}
+  if(animFrameId){cancelAnimationFrame(animFrameId);animFrameId=null}
+}
+
+async function toggleRecording(){
+  if(!isRecording){
+    if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){
+      try{const p=await DeviceMotionEvent.requestPermission();if(p!=='granted'){addLog('권한 거부');return}}
+      catch(e){addLog('권한 실패');return}
     }
+    isRecording=true;dataBuffer=[];graphY.fill(0);prevY=0;brakeActive=false;
+    $('frozenGraphSection').classList.remove('visible');
+    $('impactBanner').classList.remove('visible');
+    $('brakeBanner').classList.remove('visible');
+    $('yDisplay').classList.remove('braking');
+    window.addEventListener('devicemotion',handleMotion);
+    startSampling();drawGraph();
+    $('statusDot').className='status-dot active';$('statusText').textContent='기록 중';
+    $('startBtn').textContent='정지';$('startBtn').classList.add('stop-btn');
+    addLog('기록 시작 — Y축 전용, 3분 버퍼');
+  }else{
+    stopRecording();
+    $('statusDot').className='status-dot idle';$('statusText').textContent='수동 정지';
+    $('startBtn').textContent='시작';$('startBtn').classList.remove('stop-btn');
+    $('brakeBanner').classList.remove('visible');$('yDisplay').classList.remove('braking');
+    brakeActive=false;
+    addLog('수동 정지');
   }
+}
 
-  // Draw graph
-  function drawGraph() {
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-    const W = rect.width;
-    const H = rect.height;
-
-    ctx.clearRect(0, 0, W, H);
-
-    // Grid
-    ctx.strokeStyle = 'rgba(0,255,65,0.06)';
-    ctx.lineWidth = 0.5;
-    for (let y = 0; y < H; y += H/6) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    }
-    for (let x = 0; x < W; x += W/10) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-    }
-
-    // Center line
-    ctx.strokeStyle = 'rgba(0,255,65,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-
-    // Scale: map -20 to 20 m/s² to canvas height
-    const mapY = (val) => H/2 - (val / 20) * (H/2);
-
-    function drawLine(data, color, alpha) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      for (let i = 0; i < data.length; i++) {
-        const px = (i / (data.length - 1)) * W;
-        const py = mapY(data[i]);
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-
-    drawLine(graphX, '#ff4466', 0.7);  // X = red
-    drawLine(graphY, '#44ff66', 0.7);  // Y = green
-    drawLine(graphZ, '#4488ff', 0.7);  // Z = blue
-
-    // Legend
-    ctx.font = '10px Share Tech Mono';
-    const labels = [
-      { text: 'X', color: '#ff4466', x: W - 70 },
-      { text: 'Y', color: '#44ff66', x: W - 46 },
-      { text: 'Z', color: '#4488ff', x: W - 22 }
-    ];
-    labels.forEach(l => {
-      ctx.fillStyle = l.color;
-      ctx.fillRect(l.x, 6, 8, 8);
-      ctx.fillStyle = 'rgba(0,255,65,0.5)';
-      ctx.fillText(l.text, l.x + 11, 14);
-    });
-
-    requestAnimationFrame(drawGraph);
+// Desktop sim
+(function(){
+  if(!('DeviceMotionEvent' in window)||/Windows|Macintosh/.test(navigator.userAgent)){
+    addLog('데스크톱 — 시뮬레이션 모드');
+    let t=0;
+    setInterval(()=>{
+      if(!isRecording)return;t+=.05;
+      curX=Math.sin(t*1.3)*.5+(Math.random()-.5)*.3;
+      curY=Math.cos(t*.9)*.4+(Math.random()-.5)*.2;
+      curZ=9.81+Math.sin(t*.7)*.3+(Math.random()-.5)*.2;
+    },50);
   }
+})();
 
-  // Toggle recording
-  async function toggleRecording() {
-    if (!isRecording) {
-      // Request permission on iOS
-      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        try {
-          const perm = await DeviceMotionEvent.requestPermission();
-          if (perm !== 'granted') {
-            addLog('모션 센서 권한이 거부되었습니다');
-            return;
-          }
-        } catch (e) {
-          addLog('모션 센서 권한 요청 실패: ' + e.message);
-          return;
-        }
-      }
-
-      isRecording = true;
-      dataBuffer = [];
-      window.addEventListener('devicemotion', handleMotion);
-      startSampling();
-
-      statusDot.className = 'status-dot';
-      statusText.textContent = '기록 중';
-      startBtn.textContent = '정지';
-      startBtn.classList.add('danger');
-
-      addLog('모션 기록 시작 — 3분 롤링 버퍼 활성화');
-
-    } else {
-      isRecording = false;
-      window.removeEventListener('devicemotion', handleMotion);
-      if (sampleInterval) { clearInterval(sampleInterval); sampleInterval = null; }
-
-      statusDot.className = 'status-dot idle';
-      statusText.textContent = '정지됨';
-      startBtn.textContent = '시작';
-      startBtn.classList.remove('danger');
-
-      addLog('모션 기록 정지');
-    }
-  }
-
-  // Simulate motion for desktop testing
-  let isDesktop = false;
-  function checkDesktop() {
-    if (!('DeviceMotionEvent' in window) || (navigator.userAgent.includes('Windows') || navigator.userAgent.includes('Macintosh'))) {
-      isDesktop = true;
-      addLog('데스크톱 감지 — 시뮬레이션 모드 활성화');
-
-      // Simulate gentle motion with occasional impacts
-      let simTime = 0;
-      const originalHandleMotion = handleMotion;
-
-      setInterval(() => {
-        if (!isRecording) return;
-        simTime += 0.05;
-
-        // Base gentle motion
-        let sx = Math.sin(simTime * 1.3) * 0.5 + (Math.random() - 0.5) * 0.3;
-        let sy = Math.cos(simTime * 0.9) * 0.4 + (Math.random() - 0.5) * 0.2;
-        let sz = 9.81 + Math.sin(simTime * 0.7) * 0.3 + (Math.random() - 0.5) * 0.2;
-
-        curX = sx;
-        curY = sy;
-        curZ = sz;
-      }, 50);
-    }
-  }
-
-  // Init
-  checkDesktop();
-  drawGraph();
-  addLog('시스템 초기화 완료');
-  addLog('시작 버튼을 눌러 기록을 시작하세요');
-
-  // Handle window resize for canvas
-  window.addEventListener('resize', () => {
-    // Canvas auto-adjusts in drawGraph via getBoundingClientRect
-  });
+addLog('시스템 초기화 완료');
+addLog('"시작" 버튼을 눌러 기록 시작');
+drawGraph();
 </script>
-
 </body>
 </html>
